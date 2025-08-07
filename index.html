@@ -2,61 +2,123 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <title>HP Mini-PC Bestellung</title>
-  <script src="https://unpkg.com/pdf-lib"></script>
+  <title>HP Mini-PC konfigurieren</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
+    :root {
+      --primary-color: #0071e3;
+      --text-color: #1d1d1f;
+      --bg-color: #ffffff;
+      --border-color: #e5e5e5;
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
     body {
-      font-family: sans-serif;
-      background: #111;
-      color: white;
+      margin: 0;
+      padding: 0;
+      font-family: var(--font);
+      background-color: var(--bg-color);
+      color: var(--text-color);
+    }
+
+    .container {
       max-width: 600px;
-      margin: 40px auto;
-      padding: 20px;
+      margin: 60px auto;
+      padding: 0 20px;
     }
-    input, select, button {
+
+    h1 {
+      text-align: center;
+      font-size: 28px;
+      margin-bottom: 40px;
+    }
+
+    label {
+      font-weight: 500;
+      margin-top: 20px;
+      display: block;
+    }
+
+    select, input {
       width: 100%;
-      padding: 10px;
-      margin-top: 10px;
-      font-size: 1em;
+      padding: 12px;
+      margin-top: 8px;
+      font-size: 16px;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      background-color: #f9f9f9;
     }
-    h2 { margin-top: 30px; }
-    .hidden { display: none; }
+
+    #preis {
+      font-size: 24px;
+      text-align: center;
+      margin: 30px 0;
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      background-color: var(--primary-color);
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #005bb5;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 60px;
+      font-size: 13px;
+      color: #888;
+    }
   </style>
 </head>
 <body>
-  <h1>🖥️ HP Mini-PC Bestellung</h1>
+  <div class="container">
+    <h1>Konfigurieren Sie Ihren HP Mini-PC</h1>
 
-  <label>Betriebssystem wählen:</label>
-  <select id="os" onchange="updatePrice()">
-    <option value="windows10">Windows 10 (+5 €)</option>
-    <option value="windows11">Windows 11 (+7 €)</option>
-    <option value="ubuntu">Ubuntu (+5 €)</option>
-  </select>
+    <label>Betriebssystem:</label>
+    <select id="os" onchange="updatePrice()">
+      <option value="windows10">Windows 10 (+5 €)</option>
+      <option value="windows11">Windows 11 (+7 €)</option>
+      <option value="ubuntu">Ubuntu (+5 €)</option>
+    </select>
 
-  <label>Design wählen:</label>
-  <select id="design" onchange="updatePrice()">
-    <option value="mitLogo">Mit Hustensaft-Logo</option>
-    <option value="ohneLogo">Ohne Logo</option>
-  </select>
+    <label>Design auswählen:</label>
+    <select id="design" onchange="updatePrice()">
+      <option value="mitLogo">Mit Hustensaft-Logo</option>
+      <option value="ohneLogo">Ohne Logo</option>
+    </select>
 
-  <label>Name:</label>
-  <input type="text" id="name">
+    <label>Name:</label>
+    <input type="text" id="name" placeholder="Max Mustermann">
 
-  <label>E-Mail:</label>
-  <input type="email" id="email">
+    <label>E-Mail:</label>
+    <input type="email" id="email" placeholder="name@email.de">
 
-  <label>Adresse:</label>
-  <input type="text" id="adresse">
+    <label>Adresse:</label>
+    <input type="text" id="adresse" placeholder="Straße und Hausnummer, Stadt">
 
-  <label>PLZ:</label>
-  <input type="text" id="plz">
+    <label>PLZ:</label>
+    <input type="text" id="plz" placeholder="z. B. 12345">
 
-  <label>Land:</label>
-  <input type="text" id="land" value="Deutschland" onchange="updatePrice()">
+    <label>Land:</label>
+    <input type="text" id="land" value="Deutschland" onchange="updatePrice()">
 
-  <h2 id="preis">Gesamtpreis: 0,00 €</h2>
+    <div id="preis">Gesamtpreis: 0,00 €</div>
 
-  <button onclick="senden()">🛒 Bestellung abschicken + PDF erzeugen</button>
+    <button onclick="senden()">🛒 Jetzt bestellen</button>
+
+    <footer>
+      © 2025 Hustensaft Management – Mini-PC Shop
+    </footer>
+  </div>
 
   <script>
     function getOSPrice(os) {
@@ -75,81 +137,14 @@
     function updatePrice() {
       const os = document.getElementById("os").value;
       const land = document.getElementById("land").value;
-      const total = 20 + getOSPrice(os) + getShippingPrice(land);
-      document.getElementById("preis").innerText = `Gesamtpreis: ${total.toFixed(2)} €`;
+      const preis = 20 + getOSPrice(os) + getShippingPrice(land);
+      document.getElementById("preis").innerText = `Gesamtpreis: ${preis.toFixed(2)} €`;
     }
 
-    async function senden() {
-      const osText = {
-        windows10: "Windows 10",
-        windows11: "Windows 11",
-        ubuntu: "Ubuntu"
-      };
-
-      const name = document.getElementById("name").value;
-      const email = document.getElementById("email").value;
-      const adresse = document.getElementById("adresse").value;
-      const plz = document.getElementById("plz").value;
-      const land = document.getElementById("land").value;
-      const os = document.getElementById("os").value;
-      const design = document.getElementById("design").value === "mitLogo" ? "Mit Logo" : "Ohne Logo";
-      const osPrice = getOSPrice(os);
-      const shipping = getShippingPrice(land);
-      const total = 20 + osPrice + shipping;
-
-      // Text für Mail
-      const mailText = `
-Neue Bestellung:
-------------------------
-🧍 Name: ${name}
-✉️ E-Mail: ${email}
-🏠 Adresse: ${adresse}
-📮 PLZ: ${plz}
-🌍 Land: ${land}
-
-💻 Betriebssystem: ${osText[os]} (+${osPrice} €)
-🎨 Design: ${design}
-🚚 Versand: ${shipping.toFixed(2)} €
-💶 Gesamt: ${total.toFixed(2)} €
-------------------------
-      `;
-
-      // Mail-Link vorbereiten
-      const mailtoLink = `mailto:bestellung@hustensaft.org?subject=Neue Bestellung&body=${encodeURIComponent(mailText)}`;
-      window.open(mailtoLink, '_blank');
-
-      // PDF erstellen
-      const { PDFDocument, rgb, StandardFonts } = PDFLib;
-      const pdfDoc = await PDFDocument.create();
-      const page = pdfDoc.addPage([595, 842]); // A4
-      const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
-      const drawText = (text, x, y) => page.drawText(text, { x, y, size: 12, font, color: rgb(0, 0, 0) });
-
-      // Hintergrund weiß
-      page.drawRectangle({ x: 0, y: 0, width: 595, height: 842, color: rgb(1, 1, 1) });
-
-      drawText("HP Mini-PC – Bestellschein", 50, 800);
-      drawText(`Name: ${name}`, 50, 770);
-      drawText(`E-Mail: ${email}`, 50, 750);
-      drawText(`Adresse: ${adresse}`, 50, 730);
-      drawText(`PLZ: ${plz}`, 50, 710);
-      drawText(`Land: ${land}`, 50, 690);
-      drawText(`Betriebssystem: ${osText[os]} (+${osPrice} €)`, 50, 660);
-      drawText(`Design: ${design}`, 50, 640);
-      drawText(`Versand: ${shipping.toFixed(2)} €`, 50, 620);
-      drawText(`Gesamtpreis: ${total.toFixed(2)} €`, 50, 590);
-      drawText(`Datum: ${new Date().toLocaleDateString()}`, 50, 560);
-
-      const pdfBytes = await pdfDoc.save();
-      const blob = new Blob([pdfBytes], { type: "application/pdf" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `Bestellschein_${name.replaceAll(" ", "_")}.pdf`;
-      a.click();
+    function senden() {
+      alert("Bestellung wird jetzt vorbereitet… (PDF & Mail kommt im echten Shop)");
     }
 
-    // Initialer Preis
     updatePrice();
   </script>
 </body>
