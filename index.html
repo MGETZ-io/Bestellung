@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>HP Mini-PC Bestellung</title>
+  <script src="https://unpkg.com/pdf-lib"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #111;
+      color: white;
+      max-width: 600px;
+      margin: 40px auto;
+      padding: 20px;
+    }
+    input, select, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      font-size: 1em;
+    }
+    h2 { margin-top: 30px; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <h1>🖥️ HP Mini-PC Bestellung</h1>
+
+  <label>Betriebssystem wählen:</label>
+  <select id="os" onchange="updatePrice()">
+    <option value="windows10">Windows 10 (+5 €)</option>
+    <option value="windows11">Windows 11 (+7 €)</option>
+    <option value="ubuntu">Ubuntu (+5 €)</option>
+  </select>
+
+  <label>Design wählen:</label>
+  <select id="design" onchange="updatePrice()">
+    <option value="mitLogo">Mit Hustensaft-Logo</option>
+    <option value="ohneLogo">Ohne Logo</option>
+  </select>
+
+  <label>Name:</label>
+  <input type="text" id="name">
+
+  <label>E-Mail:</label>
+  <input type="email" id="email">
+
+  <label>Adresse:</label>
+  <input type="text" id="adresse">
+
+  <label>PLZ:</label>
+  <input type="text" id="plz">
+
+  <label>Land:</label>
+  <input type="text" id="land" value="Deutschland" onchange="updatePrice()">
+
+  <h2 id="preis">Gesamtpreis: 0,00 €</h2>
+
+  <button onclick="senden()">🛒 Bestellung abschicken + PDF erzeugen</button>
+
+  <script>
+    function getOSPrice(os) {
+      switch (os) {
+        case "windows10": return 5;
+        case "windows11": return 7;
+        case "ubuntu": return 5;
+        default: return 0;
+      }
+    }
+
+    function getShippingPrice(land) {
+      return (land.trim().toLowerCase() === "deutschland") ? 6.99 : 15.99;
+    }
+
+    function updatePrice() {
+      const os = document.getElementById("os").value;
+      const land = document.getElementById("land").value;
+      const total = 20 + getOSPrice(os) + getShippingPrice(land);
+      document.getElementById("preis").innerText = `Gesamtpreis: ${total.toFixed(2)} €`;
+    }
+
+    async function senden() {
+      const osText = {
+        windows10: "Windows 10",
+        windows11: "Windows 11",
+        ubuntu: "Ubuntu"
+      };
+
+      const name = document.getElementById("name").value;
+      const email = document.getElementById("email").value;
+      const adresse = document.getElementById("adresse").value;
+      const plz = document.getElementById("plz").value;
+      const land = document.getElementById("land").value;
+      const os = document.getElementById("os").value;
+      const design = document.getElementById("design").value === "mitLogo" ? "Mit Logo" : "Ohne Logo";
+      const osPrice = getOSPrice(os);
+      const shipping = getShippingPrice(land);
+      const total = 20 + osPrice + shipping;
+
+      // Text für Mail
+      const mailText = `
+Neue Bestellung:
+------------------------
+🧍 Name: ${name}
+✉️ E-Mail: ${email}
+🏠 Adresse: ${adresse}
+📮 PLZ: ${plz}
+🌍 Land: ${land}
+
+💻 Betriebssystem: ${osText[os]} (+${osPrice} €)
+🎨 Design: ${design}
+🚚 Versand: ${shipping.toFixed(2)} €
+💶 Gesamt: ${total.toFixed(2)} €
+------------------------
+      `;
+
+      // Mail-Link vorbereiten
+      const mailtoLink = `mailto:bestellung@hustensaft.org?subject=Neue Bestellung&body=${encodeURIComponent(mailText)}`;
+      window.open(mailtoLink, '_blank');
+
+      // PDF erstellen
+      const { PDFDocument, rgb, StandardFonts } = PDFLib;
+      const pdfDoc = await PDFDocument.create();
+      const page = pdfDoc.addPage([595, 842]); // A4
+      const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+      const drawText = (text, x, y) => page.drawText(text, { x, y, size: 12, font, color: rgb(0, 0, 0) });
+
+      // Hintergrund weiß
+      page.drawRectangle({ x: 0, y: 0, width: 595, height: 842, color: rgb(1, 1, 1) });
+
+      drawText("HP Mini-PC – Bestellschein", 50, 800);
+      drawText(`Name: ${name}`, 50, 770);
+      drawText(`E-Mail: ${email}`, 50, 750);
+      drawText(`Adresse: ${adresse}`, 50, 730);
+      drawText(`PLZ: ${plz}`, 50, 710);
+      drawText(`Land: ${land}`, 50, 690);
+      drawText(`Betriebssystem: ${osText[os]} (+${osPrice} €)`, 50, 660);
+      drawText(`Design: ${design}`, 50, 640);
+      drawText(`Versand: ${shipping.toFixed(2)} €`, 50, 620);
+      drawText(`Gesamtpreis: ${total.toFixed(2)} €`, 50, 590);
+      drawText(`Datum: ${new Date().toLocaleDateString()}`, 50, 560);
+
+      const pdfBytes = await pdfDoc.save();
+      const blob = new Blob([pdfBytes], { type: "application/pdf" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Bestellschein_${name.replaceAll(" ", "_")}.pdf`;
+      a.click();
+    }
+
+    // Initialer Preis
+    updatePrice();
+  </script>
+</body>
+</html>
